@@ -23,6 +23,9 @@
             --flash-yellow-side-color: #FF8200; /* A more intense orange for the flash on the yellow side */
             --yellowish-green: #ADFF2F; /* New yellowish-green color */
             --darker-yellowish-green: #90EE90; /* A slightly darker shade for hover effect */
+            
+            /* Nueva variable para el tamaño responsivo de las piezas del puzzle */
+            --puzzle-piece-size: clamp(80px, 15vw, 100px); /* Min 80px, Max 100px, escala con el 15% del ancho del viewport */
         }
 
         body {
@@ -132,8 +135,8 @@
             /* The SVG is a 6x6 pixel canvas with a black circle of radius 1.5px centered in it. */
             /* This gives a 3px diameter circle. */
             background-image: 
-                url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My4xLjYvMjAwMC9zdmciIHdpZHRoPSI2IiHoZWlnaHQ9IjYiPjxjaXJjY2xlIGN4PSIzIiBjeT0iMyIgcj0iMS41IiBmaWxsPSJibGFjayIvPjwvc3ZnPg=='),
-                url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My4xLjYvMjAwMC9zdmciIHdpZHRoPSI2IiHoZWlnaHQ9IjYiPjxjaXJjY2xlIGN4PSIzIiBjeT0iMyIgcj0iMS41IiBmaWxsPSJibGFjayIvPjwvc3ZnPg==');
+                url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My4xLjYvMjAwMC9zdmciIHdpZHRoPSI2IiHoZWlnaHQ9IjYiPjxjaXJjY2xlIGN4PSAzIiBjeT0iMyIgcj0iMS41IiBmaWxsPSJibGFjayIvPjwvc3ZnPg=='),
+                url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My4xLjYvMjAwMC9zdmciIHdpZHRoPSI2IiHoZWlnaHQ9IjYiPjxjaXJjY2xlIGN4PSAzIiBjeT0iMyIgcj0iMS41IiBmaWxsPSJibGFjayIvPjwvc3ZnPg==');
             
             /* Controls the spacing of the repeated SVG circles (each SVG is 6x6) */
             background-size: 6px 6px; 
@@ -162,14 +165,16 @@
             position: relative; /* Needed for pseudo-element positioning */
             background-color: #d97706; /* Orange for the "windows" */
             padding: 1.5rem;
-            /* Removed hard, flat, and almost completely black shadow */
             box-shadow: none; 
             overflow: hidden;
             border-radius: 0.5rem; /* More rounded corners (8px) */
-            /* Animation for the puzzle wrapper and its shadow */
-            animation: glitch-wrapper-up-down-keyframes 4s steps(6, end) infinite; /* Original animation */
+            animation: glitch-wrapper-up-down-keyframes 4s steps(6, end) infinite; 
             
-            /* No direct borders here, handled by pseudo-element */
+            /* Controla el tamaño general del puzzle wrapper para que sea responsivo */
+            width: 90vw; /* Ocupa el 90% del ancho del viewport */
+            max-width: 800px; /* Pero no más de 800px en pantallas grandes */
+            margin-left: auto; /* Centrar horizontalmente */
+            margin-right: auto; /* Centrar horizontalmente */
         }
         
         /* Pseudo-element for the animated white border on puzzle-wrapper */
@@ -210,74 +215,90 @@
         .content-grid {
             position: relative;
             z-index: 1; /* Ensures content is above the canvas dots and Ben Day dots */
+            display: flex; /* Siempre flex */
+            flex-direction: row; /* Siempre en fila */
+            justify-content: center; /* Centrar contenido */
+            align-items: flex-start; /* Alinear arriba */
+            gap: 1rem; /* Espacio entre los contenedores de fragmentos y lienzo (reducido para móvil) */
+            flex-wrap: nowrap; /* Evita que los elementos se envuelvan a una nueva línea */
+        }
+        /* Ajustar el gap para pantallas más grandes si es necesario */
+        @media (min-width: 768px) { /* md breakpoint */
+            .content-grid {
+                gap: 3rem; /* gap-12 en Tailwind es 3rem */
+            }
         }
 
         .puzzle-area {
-            /* No background-color here, replaced by gradients in specific classes */
             padding: 1rem;
-            border-radius: 0.5rem; /* More rounded corners (8px) */
-            /* Removed shadow changed to dark orange */
+            border-radius: 0.5rem; 
             box-shadow: none; 
-            /* Removed white border on top and left for puzzle areas */
+            flex-shrink: 0; /* Evita que los elementos se encojan más allá de su contenido */
+            flex-basis: 50%; /* Intenta que cada área ocupe la mitad del espacio disponible */
+            min-width: 280px; /* Establece un ancho mínimo para evitar que se hagan demasiado pequeños */
         }
 
         /* Specific gradient for the left puzzle area */
         .puzzle-area-left {
-            background: linear-gradient(to top left, var(--color-yellow-base) 15%, #FF8C00); /* Starts yellow from bottom-right, smaller yellow area, transitions to more orangey-yellow */
+            background: linear-gradient(to top left, var(--color-yellow-base) 15%, #FF8C00); 
         }
 
         /* Specific gradient for the right puzzle area */
         .puzzle-area-right {
-            background: linear-gradient(to top right, var(--color-yellow-base) 15%, #FF8C00); /* Starts yellow from bottom-left, smaller yellow area, transitions to more orangey-yellow */
+            background: linear-gradient(to top right, var(--color-yellow-base) 15%, #FF8C00); 
         }
 
         /* Set a fixed minimum height for the pieces container */
         #pieces-container {
-            min-height: 210px; /* Reduced height for the fragments window */
+            min-height: calc(2 * var(--puzzle-piece-size) + 2 * 0.5rem); /* Ajusta la altura mínima basada en el tamaño de la pieza */
+            display: grid;
+            grid-template-columns: repeat(3, var(--puzzle-piece-size)); /* Columnas basadas en el tamaño de la pieza */
+            gap: 0.5rem; /* gap-2 en Tailwind es 0.5rem */
+            justify-content: center;
+        }
+
+        #puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, var(--puzzle-piece-size)); /* Columnas basadas en el tamaño de la pieza */
+            gap: 0.5rem; /* gap-2 en Tailwind es 0.5rem */
+            justify-content: center;
         }
 
         .puzzle-piece, .puzzle-slot {
-            width: 100px; /* Reverted to fixed width */
-            height: 100px; /* Reverted to fixed height */
-            background-size: 300px 200px; /* Reverted to original background size */
-            /* Unified transition for puzzle pieces (including hover) */
-            /* The transition is handled dynamically in JS for instant placement/removal feedback */
-            border-radius: 8px; /* More rounded corners for pieces and slots */
+            width: var(--puzzle-piece-size); /* Usa la variable de tamaño responsivo */
+            height: var(--puzzle-piece-size); /* Usa la variable de tamaño responsivo */
+            /* Cambiado a porcentajes para que la imagen de fondo escale correctamente */
+            background-size: 300% 200%; 
+            border-radius: 8px; 
             image-rendering: pixelated;
         }
         .puzzle-piece {
             cursor: grab;
-            /* Changed shadow to a sharp, offset shadow for a "harder" look */
-            box-shadow: 4px 4px 0px rgba(0,0,0,0.5); /* Hard shadow, 4px offset in X and Y */
-            transition: transform 0.2s steps(2, end), box-shadow 0.2s steps(2, end); /* Re-added for hover outside dragging */
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.5); 
+            transition: transform 0.2s steps(2, end), box-shadow 0.2s steps(2, end); 
         }
         .puzzle-piece:hover {
             transform: scale(1.05);
-            /* Adjusted hover shadow to also be sharp and more prominent */
-            box-shadow: 6px 6px 0px rgba(0,0,0,0.7); /* Stronger, sharp shadow on hover */
+            box-shadow: 6px 6px 0px rgba(0,0,0,0.7); 
         }
-        /* Styles for dragged piece (applies to the browser's drag ghost if opacity of original is 0) */
         .puzzle-piece.dragging {
             cursor: grabbing;
-            transform: scale(1.1) translateY(-5px); /* Slightly larger, lifted */
-            /* Reverted to a pronounced grey shadow for better visibility */
-            box-shadow: 12px 12px 0px rgba(96, 96, 96, 0.8); /* Larger, grey, more opaque shadow */
-            transition: transform 0.15s ease-out, box-shadow 0.15s ease-out; /* Smooth transition for drag visual */
-            z-index: 100; /* Bring to front while dragging */
+            transform: scale(1.1) translateY(-5px); 
+            box-shadow: 12px 12px 0px rgba(96, 96, 96, 0.8); 
+            transition: transform 0.15s ease-out, box-shadow 0.15s ease-out; 
+            z-index: 100; 
         }
 
         .puzzle-slot {
             background-color: rgba(0,0,0,0.2);
-            /* REMOVED: border: 2px dashed rgba(255,255,255,0.4); */
-            border: none; /* Elimina el borde punteado */
-            border-radius: 8px; /* More rounded corners for slots */
-            transition: none; /* Make drag-over feedback instant */
+            border: none; 
+            border-radius: 8px; 
+            transition: none; 
         }
         .puzzle-slot.correct {
             border-color: #4ade80;
             background-color: rgba(74, 222, 128, 0.3);
-            /* Reduced animation duration for near-instant feedback */
-            animation: correct-slot-pulse 0.05s ease-out; /* Even faster animation */
+            animation: correct-slot-pulse 0.05s ease-out; 
         }
         .puzzle-slot.over { transform: scale(1.03); border-color: #ffffff; }
         
@@ -285,21 +306,19 @@
 
         /* Style for main title text (h1) */
         .glitch-main-title-animation {
-            /* Initial state of text-shadow here for consistency */
-            text-shadow: 8px 8px 0px rgba(0,0,0,1), -0.3px -0.3px 0px rgba(255,255,255,0); /* Set initial very small white outline */
-            font-family: 'Inter', sans-serif; /* Explicitly set font for main title */
+            text-shadow: 8px 8px 0px rgba(0,0,0,1), -0.3px -0.3px 0px rgba(255,255,255,0); 
+            font-family: 'Inter', sans-serif; 
         }
 
         /* Style for sub-text glitch animation */
         .glitch-subtext-animation {
-            /* Only the main shadow for sub-texts, now fully opaque */
             text-shadow: 4px 4px 0px rgba(0,0,0,1);
-            font-family: 'Inter', sans-serif; /* Applied Inter font to all general sub-texts */
-            font-weight: 700; /* Applied bold weight to all sub-texts */
+            font-family: 'Inter', sans-serif; 
+            font-weight: 700; 
         }
         /* Specific override for the modal title to ensure hand-drawn font */
         .puzzle-area .hand-drawn-font {
-            font-family: 'Permanent Marker', cursive !important; /* Ensure it overrides other rules */
+            font-family: 'Permanent Marker', cursive !important; 
         }
 
         /* New keyframes for correct slot pulse */
@@ -322,18 +341,18 @@
         @keyframes glitch-main-title-keyframes {
             0%, 100% { 
                 transform: translate(0, 0) rotate(0) scale(1); 
-                text-shadow: 8px 8px 0px rgba(0,0,0,1), /* Black shadow */
-                             -0.3px -0.3px 0px rgba(255,255,255,0); /* White outline, transparent, very small offset */
+                text-shadow: 8px 8px 0px rgba(0,0,0,1), 
+                             -0.3px -0.3px 0px rgba(255,255,255,0); 
             }
             10% { 
                 transform: translate(-0.1%, 0.1%) rotate(-0.1deg) scale(1.002); 
-                text-shadow: 8.5px 7.5px 0px rgba(0,0,0,1), /* Black moves slightly */
-                             -0.5px -0.1px 0px rgba(255,255,255,0.9); /* White moves slightly more up-left, partial opacity */
+                text-shadow: 8.5px 7.5px 0px rgba(0,0,0,1), 
+                             -0.5px -0.1px 0px rgba(255,255,255,0.9); 
             } 
             20% { 
                 transform: translate(0.1%, -0.1%) rotate(0.1deg) scale(0.998); 
-                text-shadow: 7.5px 8.5px 0px rgba(0,0,0,1), /* Black moves slightly */
-                             -0.1px -0.5px 0px rgba(255,255,255,0.9); /* White moves slightly more up-left, full opacity */
+                text-shadow: 7.5px 8.5px 0px rgba(0,0,0,1), 
+                             -0.1px -0.5px 0px rgba(255,255,255,0.9); 
             }
             30% { 
                 transform: translate(-0.1%, 0.1%) rotate(-0.1deg) scale(1.002); 
@@ -343,22 +362,22 @@
             40% { 
                 transform: translate(0.1%, -0.1%) rotate(0.1deg) scale(0.998); 
                 text-shadow: 7.5px 8.5px 0px rgba(0,0,0,1), 
-                             -0.1px -0.5px 0px rgba(255,255,255,0); /* White transparent */
+                             -0.1px -0.5px 0px rgba(255,255,255,0); 
             }
             50% { 
                 transform: translate(-0.1%, 0.1%) rotate(-0.1deg) scale(1.002); 
                 text-shadow: 8.5px 7.5px 0px rgba(0,0,0,1), 
-                             -0.5px -0.1px 0px rgba(255,255,255,0); /* White transparent */
+                             -0.5px -0.1px 0px rgba(255,255,255,0); 
             }
             60% { 
                 transform: translate(0.1%, -0.1%) rotate(0.1deg) scale(0.998); 
                 text-shadow: 7.5px 8.5px 0px rgba(0,0,0,1), 
-                             -0.1px -0.5px 0px rgba(255,255,255,0.9); /* White partial opacity */
+                             -0.1px -0.5px 0px rgba(255,255,255,0.9); 
             }
             70% { 
                 transform: translate(-0.1%, 0.1%) rotate(-0.1deg) scale(1.002); 
                 text-shadow: 8.5px 7.5px 0px rgba(0,0,0,1), 
-                             -0.5px -0.1px 0px rgba(255,255,255,0.9); /* White full opacity */
+                             -0.5px -0.1px 0px rgba(255,255,255,0.9); 
             }
             80% { 
                 transform: translate(0.1%, -0.1%) rotate(0.1deg) scale(0.998); 
@@ -368,7 +387,7 @@
             90% { 
                 transform: translate(-0.1%, 0.1%) rotate(-0.1deg) scale(1.001); 
                 text-shadow: 8.5px 7.5px 0px rgba(0,0,0,1), 
-                             -0.5px -0.1px 0px rgba(255,255,255,0); /* White transparent */
+                             -0.5px -0.1px 0px rgba(255,255,255,0); 
             }
         }
 
@@ -376,7 +395,7 @@
         @keyframes glitch-subtext-keyframes {
             0%, 100% { 
                 transform: translate(0, 0) rotate(0) scale(1); 
-                text-shadow: 4px 4px 0px rgba(0,0,0,1); /* Fully opaque black shadow */
+                text-shadow: 4px 4px 0px rgba(0,0,0,1); 
             }
             10% { 
                 transform: translate(-0.05%, 0.05%) rotate(-0.05deg) scale(1.001); 
@@ -449,8 +468,7 @@
             animation-name: glitch-main-title-keyframes;
             animation-duration: 2.5s; /* All parts of the animation use this duration */
             animation-iteration-count: infinite;
-            animation-timing-function: steps(1, end); /* This applies to text-shadow opacity too */
-            /* Initial state for text-shadow is set in the keyframes */
+            animation-timing-function: steps(1, end); 
         }
 
         /* Animation properties for sub-texts */
@@ -459,34 +477,33 @@
             animation-duration: 2.5s;
             animation-iteration-count: infinite;
             animation-timing-function: steps(1, end);
-            /* Font family for these elements is set in the .glitch-subtext-animation rule */
-            font-weight: 700; /* Applied bold weight to all sub-texts */
+            font-weight: 700; 
         }
 
         /* Style for the retry button */
         #play-again-btn {
-            background-color: var(--yellowish-green); /* Yellowish-green color */
-            border: none; /* No border for a cleaner look */
-            color: white; /* White icon color */
-            padding: 0.75rem 1rem; /* Padding for the icon */
-            font-size: 2.5rem; /* Larger icon size */
+            background-color: var(--yellowish-green); 
+            border: none; 
+            color: white; 
+            padding: 0.75rem 1rem; 
+            font-size: 2.5rem; 
             cursor: pointer;
             transition: background-color 0.3s ease;
-            display: inline-flex; /* Use flex to center the SVG */
+            display: inline-flex; 
             align-items: center;
             justify-content: center;
-            width: 80px; /* Fixed width for the button */
-            height: 80px; /* Fixed height for the button */
-            border-radius: 50%; /* Make it circular */
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+            width: 80px; 
+            height: 80px; 
+            border-radius: 50%; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
         }
         #play-again-btn:hover {
-            background-color: var(--darker-yellowish-green); /* Darker yellowish-green on hover */
+            background-color: var(--darker-yellowish-green); 
         }
         #play-again-btn svg {
-            width: 1em; /* Make SVG scale with font-size */
+            width: 1em; 
             height: 1em;
-            fill: currentColor; /* Inherit color from button */
+            fill: currentColor; 
         }
 
         /* Allow text selection for the prize code specifically */
@@ -512,14 +529,14 @@
 
     <div class="puzzle-wrapper">
         <canvas id="dot-canvas"></canvas>
-        <div class="content-grid flex flex-col md:flex-row items-start gap-12">
+        <div class="content-grid">
             <div class="puzzle-area puzzle-area-left">
                 <h2 class="text-4xl md:text-5xl font-semibold text-center text-yellow-400 mb-4 glitch-subtext-animation">Fragmentos</h2>
-                <div id="pieces-container" class="grid grid-cols-3 gap-x-2 gap-y-2 items-start justify-center"></div>
+                <div id="pieces-container"></div>
             </div>
             <div class="puzzle-area puzzle-area-right">
                 <h2 class="text-4xl md:text-5xl font-semibold text-center text-yellow-400 mb-4 glitch-subtext-animation">Lienzo</h2>
-                <div id="puzzle-grid" class="grid grid-cols-3 gap-2"></div>
+                <div id="puzzle-grid"></div>
             </div>
         </div>
     </div>
@@ -555,7 +572,7 @@
             const PUZZLE_COLS = 3;
             const PIECE_COUNT = PUZZLE_ROWS * PUZZLE_COLS;
             let correctlyPlaced = 0;
-            let draggedPiece = null;
+            // No longer using a global draggedPiece variable
             
             // Puzzle images using direct URLs from Imgur.
             const puzzleImages = [
@@ -563,179 +580,138 @@
                 'https://i.imgur.com/RTydQnq.jpeg', // Direct link to image 2
                 'https://i.imgur.com/um82THp.jpeg'  // Direct link to image 3
             ];
-            // Modificado para generar códigos de 4 dígitos.
-            const prizeCodes = Array.from({ length: 100 }, () => Math.floor(1000 + Math.random() * 9000).toString());
             
-            // Map to store active canvas animations so they can be properly stopped.
+            // Lista de 200 códigos únicos de 4 dígitos, cada uno con un "!" al principio
+            const prizeCodes = [];
+            while (prizeCodes.length < 200) {
+                const code = '!' + Math.floor(1000 + Math.random() * 9000).toString(); // Add "!" here
+                if (!prizeCodes.includes(code)) {
+                    prizeCodes.push(code);
+                }
+            }
+            // console.log('Pre-defined prize codes list:', prizeCodes); // Uncomment to see the list in console
+
             const activeAnimations = {};
 
-            /**
-             * Keep track of the current puzzle image index to cycle through images
-             */
             let currentPuzzleImageIndex = 0;
 
-            // --- Drag and Drop Handlers ---
-            // Moved these functions to be declared at the top level within DOMContentLoaded
-            // so they are accessible when attached as event listeners.
-
-            /**
-             * Handles the start of a drag operation.
-             * @param {DragEvent} e - The drag event.
-             */
             function handleDragStart(e) { 
-                // Add 'dragging' class for styling the visual ghost (shadow, scale)
+                // Set data for the drag operation: the piece's index
+                e.dataTransfer.setData('text/plain', e.target.dataset.pieceIndex);
+                // Set a custom drag image (optional, but can help with visual feedback)
+                // e.dataTransfer.setDragImage(e.target, e.target.offsetWidth / 2, e.target.offsetHeight / 2);
+
                 e.target.classList.add('dragging'); 
-                // Reduce opacity of the original element to make it appear to "fade away"
-                e.target.style.opacity = '0.4'; 
-                draggedPiece = e.target; // Store reference to the dragged piece
+                // Make the original element completely invisible, relying on the browser's drag ghost
+                e.target.style.opacity = '0'; 
             }
 
-            /**
-             * Handles the end of a drag operation.
-             * This event fires when the drag operation is finished (after drop or cancellation).
-             * It's responsible for cleaning up the visual state of the *original* dragged element.
-             * @param {DragEvent} e - The drag event.
-             */
             function handleDragEnd(e) { 
-                // Ensure e.target is a valid DOM element with a classList property
-                // This guards against potential issues where e.target might become null or not a valid element.
-                if (e.target && e.target.classList) {
-                    // Only remove dragging and reset opacity if it wasn't successfully dropped
-                    // (i.e., draggedPiece is still referencing this element, meaning handleDrop didn't null it)
-                    if (draggedPiece === e.target) {
-                        e.target.classList.remove('dragging'); // Remove 'dragging' class from the original element
-                        e.target.style.opacity = ''; // Reset opacity of the original element
-                        // Re-enable transitions that might have been temporarily disabled if the drag was unsuccessful
-                        e.target.style.transition = 'transform 0.2s steps(2, end), box-shadow 0.2s steps(2, end)';
-                    }
+                // This event fires whether the drop was successful or not.
+                // If the piece was successfully dropped, handleDrop would have removed 'dragging' and set opacity to '1'.
+                // So, we only need to reset if it still has the 'dragging' class (meaning it wasn't dropped on a valid target).
+                if (e.target.classList.contains('dragging')) {
+                    e.target.classList.remove('dragging'); 
+                    e.target.style.opacity = '1'; // Reset opacity for the original piece
+                    e.target.style.transition = 'transform 0.2s steps(2, end), box-shadow 0.2s steps(2, end)';
                 }
-                // Always clear the global draggedPiece reference once the drag operation is fully over,
-                // regardless of whether it was successfully dropped or not.
-                draggedPiece = null; 
             }
 
-            /**
-             * Handles the drag over event, preventing default to allow dropping.
-             * Adds 'over' class for visual feedback on valid drop targets.
-             * @param {DragEvent} e - The drag event.
-             */
             function handleDragOver(e) { 
-                e.preventDefault(); // Allow drop
-                // Only add 'over' class if it's a puzzle slot and currently empty
+                e.preventDefault(); // Crucial: Allows a drop to happen on this element
                 if (e.target.classList.contains('puzzle-slot') && e.target.childElementCount === 0) { 
                     e.target.classList.add('over'); 
                 } 
             }
 
-            /**
-             * Handles the drag leave event, removing the 'over' class.
-             * @param {DragEvent} e - The drag event.
-             */
             function handleDragLeave(e) { 
-                e.target.classList.remove('over'); // Remove 'over' class
+                e.target.classList.remove('over'); 
             }
 
-            /**
-             * Handles the drop event, checking if the piece is dropped into its correct slot.
-             * @param {DragEvent} e - The drag event.
-             */
             function handleDrop(e) {
-                e.preventDefault(); // Prevent default browser behavior
+                e.preventDefault(); // Crucial: Prevents default browser drop behavior
                 const dropZone = e.target;
-                dropZone.classList.remove('over'); // Remove 'over' class immediately
+                dropZone.classList.remove('over'); 
 
-                // Ensure a piece is being dragged and the drop target is a valid, empty slot
-                if (draggedPiece && dropZone.classList.contains('puzzle-slot') && dropZone.childElementCount === 0) {
-                    // Check if the piece's original index matches the slot's correct index
-                    if (draggedPiece.dataset.pieceIndex === dropZone.dataset.slotIndex) {
-                        // Capture the currently dragged piece locally before nulling the global
-                        const currentDroppedPiece = draggedPiece;
-                        const originalPieceTransition = currentDroppedPiece.style.transition;
+                // Retrieve the piece index from the dataTransfer object
+                const droppedPieceIndex = e.dataTransfer.getData('text/plain');
+                // Find the actual piece element using its data-piece-index
+                const currentDroppedPiece = document.querySelector(`.puzzle-piece[data-piece-index="${droppedPieceIndex}"]`);
+
+                if (currentDroppedPiece && dropZone.classList.contains('puzzle-slot') && dropZone.childElementCount === 0) {
+                    // Check if the dropped piece matches the slot's expected index
+                    if (currentDroppedPiece.dataset.pieceIndex === dropZone.dataset.slotIndex) {
+                        const originalPieceTransition = currentDroppedPiece.style.transition; 
                         
-                        currentDroppedPiece.style.transition = 'none'; // Temporarily set to 'none' for instant placement
+                        // Disable transition for instant placement
+                        currentDroppedPiece.style.transition = 'none'; 
+                        // Force reflow to ensure 'transition: none' is applied immediately
+                        // eslint-disable-next-line no-unused-vars
+                        const forceReflow = currentDroppedPiece.offsetWidth; 
                         
                         dropZone.appendChild(currentDroppedPiece); // Place the piece in the slot
-                        currentDroppedPiece.setAttribute('draggable', false); // Make piece non-draggable after correct placement
-                        currentDroppedPiece.style.cursor = 'default'; // Change cursor
-                        currentDroppedPiece.style.opacity = ''; // Reset opacity for the placed piece immediately
-                        currentDroppedPiece.classList.remove('dragging'); // Remove dragging class instantly
+                        currentDroppedPiece.setAttribute('draggable', false); // Make piece non-draggable once placed
+                        currentDroppedPiece.style.cursor = 'default'; // Change cursor for placed piece
+                        currentDroppedPiece.classList.remove('dragging'); // Remove dragging class
+                        currentDroppedPiece.style.opacity = '1'; // Immediately set opacity to 1 AFTER it's appended
 
-                        // Re-enable transitions after the DOM update is painted, so hover effects still work
-                        setTimeout(() => {
-                            // Check if currentDroppedPiece is still a valid DOM element before accessing style
-                            if (currentDroppedPiece && currentDroppedPiece.style) {
+                        // Re-enable transitions in the next animation frame for future hover effects
+                        requestAnimationFrame(() => {
+                            if (currentDroppedPiece && currentDroppedPiece.style) { 
                                 currentDroppedPiece.style.transition = originalPieceTransition;
                             }
-                        }, 0); // 0ms delay means "as soon as possible after current script finishes"
+                        });
 
-                        dropZone.classList.add('correct'); // Highlight correct slot
+                        dropZone.classList.add('correct'); // Highlight the slot as correct
                         
-                        correctlyPlaced++; // Increment counter for correctly placed pieces
-                        checkCompletion(); // Check if puzzle is complete
-                        
-                        // Crucial: Clear draggedPiece immediately on successful drop
-                        // to ensure handleDragEnd doesn't try to "clean up" a piece that's already placed.
-                        draggedPiece = null; 
+                        correctlyPlaced++; 
+                        checkCompletion(); 
                     }
                 }
             }
-            // --- End Drag and Drop Handlers ---
 
-
-            /**
-             * Sets up and starts the animated background for a given canvas element.
-             * This creates a dynamic, glitchy dot effect.
-             * It also handles canvas resizing and stops animation if the canvas is removed from DOM.
-             * @param {string} canvasId - The ID of the canvas element to animate.
-             */
             function setupAnimatedCanvas(canvasId) {
-                // Clear any existing animation for this canvas before setting up a new one
                 if (activeAnimations[canvasId]) {
-                    clearInterval(activeAnimations[canvasId].interval); // Stop the interval-based animation
+                    clearInterval(activeAnimations[canvasId].interval); 
                     if (activeAnimations[canvasId].observer) {
                         activeAnimations[canvasId].observer.disconnect();
                     }
-                    delete activeAnimations[canvasId]; // Remove from active animations map
+                    delete activeAnimations[canvasId]; 
                 }
 
                 const canvas = document.getElementById(canvasId);
-                // Exit if canvas element doesn't exist or doesn't support getContext
                 if (!canvas || !canvas.getContext) return;
                 const ctx = canvas.getContext('2d');
                 
-                const DOT_COUNT = 4; // Cantidad de puntos solicitados por el usuario
-                const MIN_RADIUS = 60; // Radio mínimo para puntos "gigantes"
-                const MAX_RADIUS = 180; // Radio máximo para puntos "gigantes"
-                const MIN_SPACING = 50; // Espaciado mínimo entre bordes de puntos
-                const MAX_ATTEMPTS_PER_DOT = 100; // Para evitar bucles infinitos en la colocación
+                const DOT_COUNT = 4; 
+                const MIN_RADIUS = 60; 
+                const MAX_RADIUS = 180; 
+                const MIN_SPACING = 50; 
+                const MAX_ATTEMPTS_PER_DOT = 100; 
 
-                // Constants for edge spawning and partial visibility
-                const PARTIAL_VISIBILITY_FACTOR = 0.5; // Controls how much of the dot can be outside (0.5 means up to half radius)
-                const EDGE_SPAWN_CHANCE = 0.7; // 70% de probabilidad para un punto de aparecer cerca de un borde
-                const EDGE_ZONE_PERCENT = 0.2; // Spawn dentro del 20% de la dimensión del canvas desde cualquier borde si es un punto de borde
+                const PARTIAL_VISIBILITY_FACTOR = 0.5; 
+                const EDGE_SPAWN_CHANCE = 0.7; 
+                const EDGE_ZONE_PERCENT = 0.2; 
 
-                // Function to resize the canvas to fit its parent container
                 function resizeCanvas() {
                     const container = canvas.parentElement;
-                    if (!container) return; // Ensure container exists
+                    if (!container) return; 
                     canvas.width = container.offsetWidth;
                     canvas.height = container.offsetHeight;
                 }
 
-                // Function to draw dots on the canvas
                 function draw() {
-                    // Stop animation if canvas is no longer in the DOM
                     if (!canvas.isConnected) {
                         if (activeAnimations[canvasId]) {
-                            clearInterval(activeAnimations[canvasId].interval); // Stop the interval
+                            clearInterval(activeAnimations[canvasId].interval);
                             if (activeAnimations[canvasId].observer) {
                                 activeAnimations[canvasId].observer.disconnect();
                             }
-                            delete activeAnimations[canvasId]; // Remove from active animations map
+                            delete activeAnimations[canvasId]; 
                         }
                         return;
                     }
-                    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas for new frame
+                    ctx.clearRect(0, 0, canvas.width, canvas.height); 
                     
                     let placedDots = [];
                     for (let i = 0; i < DOT_COUNT; i++) {
@@ -748,33 +724,26 @@
 
                             let xPosCandidate, yPosCandidate;
 
-                            // Determine X position
                             if (Math.random() < EDGE_SPAWN_CHANCE && canvasId === 'dot-canvas') {
-                                // Decide left or right edge for X
-                                if (Math.random() < 0.5) { // Near left edge (can be partially outside)
+                                if (Math.random() < 0.5) { 
                                     xPosCandidate = Math.random() * (canvas.width * EDGE_ZONE_PERCENT + newDot.radius * PARTIAL_VISIBILITY_FACTOR) - newDot.radius * PARTIAL_VISIBILITY_FACTOR;
-                                } else { // Near right edge (can be partially outside)
+                                } else { 
                                     xPosCandidate = canvas.width - (Math.random() * (canvas.width * EDGE_ZONE_PERCENT + newDot.radius * PARTIAL_VISIBILITY_FACTOR) - newDot.radius * PARTIAL_VISIBILITY_FACTOR);
                                 }
                             } else {
-                                // Anywhere within the canvas, allowing for partial visibility (center can be outside)
                                 xPosCandidate = Math.random() * (canvas.width + newDot.radius * PARTIAL_VISIBILITY_FACTOR * 2) - newDot.radius * PARTIAL_VISIBILITY_FACTOR;
                             }
 
-                            // Determine Y position
                             if (Math.random() < EDGE_SPAWN_CHANCE && canvasId === 'dot-canvas') {
-                                // Decide top or bottom edge for Y
-                                if (Math.random() < 0.5) { // Near top edge (can be partially outside)
+                                if (Math.random() < 0.5) { 
                                     yPosCandidate = Math.random() * (canvas.height * EDGE_ZONE_PERCENT + newDot.radius * PARTIAL_VISIBILITY_FACTOR) - newDot.radius * PARTIAL_VISIBILITY_FACTOR;
-                                } else { // Near bottom edge (can be partially outside)
+                                } else { 
                                     yPosCandidate = canvas.height - (Math.random() * (canvas.height * EDGE_ZONE_PERCENT + newDot.radius * PARTIAL_VISIBILITY_FACTOR) - newDot.radius * PARTIAL_VISIBILITY_FACTOR);
                                 }
                             } else {
-                                // Anywhere within the canvas, allowing for partial visibility (center can be outside)
                                 yPosCandidate = Math.random() * (canvas.height + newDot.radius * PARTIAL_VISIBILITY_FACTOR * 2) - newDot.radius * PARTIAL_VISIBILITY_FACTOR;
                             }
                             
-                            // Clamp coordinates to ensure at least PARTIAL_VISIBILITY_FACTOR of the dot is inside the canvas
                             newDot.x = Math.max(-newDot.radius * (1 - PARTIAL_VISIBILITY_FACTOR), Math.min(canvas.width + newDot.radius * (1 - PARTIAL_VISIBILITY_FACTOR), xPosCandidate));
                             newDot.y = Math.max(-newDot.radius * (1 - PARTIAL_VISIBILITY_FACTOR), Math.min(canvas.height + newDot.radius * (1 - PARTIAL_VISIBILITY_FACTOR), yPosCandidate));
 
@@ -785,7 +754,6 @@
                                 const dx = newDot.x - existingDot.x;
                                 const dy = newDot.y - existingDot.y;
                                 const distance = Math.sqrt(dx * dx + dy * dy);
-                                // Check for collision: distance between centers must be greater than sum of radii + min spacing
                                 if (distance < (newDot.radius + existingDot.radius + MIN_SPACING)) {
                                     overlapped = true;
                                     break;
@@ -794,11 +762,10 @@
                             attempts++;
                         }
 
-                        if (!overlapped) { // Successfully placed a non-overlapping dot
+                        if (!overlapped) { 
                             placedDots.push(newDot);
-                            // Color amarillo con opacidad variable (0.51 a 0.60)
-                            const baseOpacity = 1.0 - (Math.random() * 0.15); // Original range [0.85, 1.0]
-                            const finalOpacity = baseOpacity * 0.6; // This will result in a range of 0.51 to 0.6
+                            const baseOpacity = 1.0 - (Math.random() * 0.15); 
+                            const finalOpacity = baseOpacity * 0.6; 
                             ctx.fillStyle = `rgba(255, 215, 0, ${finalOpacity})`;
                             ctx.beginPath();
                             ctx.arc(newDot.x, newDot.y, newDot.radius, 0, Math.PI * 2);
@@ -807,97 +774,78 @@
                     }
                 }
                 
-                resizeCanvas(); // Initial resize
-                const animationInterval = setInterval(draw, 700); // Start animation loop
-                const observer = new ResizeObserver(resizeCanvas); // Observe parent for resizing
+                resizeCanvas(); 
+                const animationInterval = setInterval(draw, 700); 
+                const observer = new ResizeObserver(resizeCanvas); 
                 
                 if (canvas.parentElement) {
                     observer.observe(canvas.parentElement);
                 }
 
-                // Store animation references to clear them later if needed
                 activeAnimations[canvasId] = {
                     interval: animationInterval,
                     observer: observer
                 };
             }
             
-            /**
-             * Desynchronizes the glitch text animations by applying a random animation delay
-             * to each element with the 'glitch-animation' class.
-             */
             function desyncAnimations() {
                 const glitchyTexts = document.querySelectorAll('.glitch-main-title-animation, .glitch-subtext-animation');
                 glitchyTexts.forEach(el => {
-                    // Apply a random negative delay so each animation starts at a different point in its cycle
                     el.style.animationDelay = `-${Math.random() * 2.5}s`;
                 });
             }
 
-            /**
-             * Initializes the game board by creating puzzle pieces and slots.
-             * Shuffles pieces and resets the game state.
-             * It now cycles through the `puzzleImages` array for new puzzles.
-             */
             function setupGame() {
-                correctlyPlaced = 0; // Reset correctly placed piece count
-                piecesContainer.innerHTML = ''; // Clear previous pieces
-                puzzleGrid.innerHTML = ''; // Clear previous slots
-                prizeModal.classList.add('invisible', 'opacity-0'); // Hide modal
+                correctlyPlaced = 0; 
+                piecesContainer.innerHTML = ''; 
+                puzzleGrid.innerHTML = ''; 
+                prizeModal.classList.add('invisible', 'opacity-0'); 
 
-                // Select the next image in the sequence
                 const imageUrl = puzzleImages[currentPuzzleImageIndex];
-                // Increment index and loop back if at the end of the array
                 currentPuzzleImageIndex = (currentPuzzleImageIndex + 1) % puzzleImages.length;
                 
                 const pieces = [];
                 for (let i = 0; i < PIECE_COUNT; i++) {
-                    // Create puzzle piece
                     const piece = document.createElement('div');
                     piece.classList.add('puzzle-piece');
                     piece.setAttribute('draggable', true);
-                    piece.dataset.pieceIndex = i; // Store original index
+                    piece.dataset.pieceIndex = i; 
                     const row = Math.floor(i / PUZZLE_COLS);
                     const col = i % PUZZLE_COLS;
                     piece.style.backgroundImage = `url('${imageUrl}')`;
-                    // Calculate background position to show the correct part of the image
-                    piece.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
+                    // Usar porcentajes para backgroundPosition
+                    piece.style.backgroundPosition = `-${col * 100}% -${row * 100}%`;
                     piece.addEventListener('dragstart', handleDragStart);
                     piece.addEventListener('dragend', handleDragEnd);
                     pieces.push(piece);
 
-                    // Create puzzle slot
                     const slot = document.createElement('div');
                     slot.classList.add('puzzle-slot');
-                    slot.dataset.slotIndex = i; // Store correct index for the slot
+                    slot.dataset.slotIndex = i; 
                     slot.addEventListener('dragover', handleDragOver);
                     slot.addEventListener('dragleave', handleDragLeave);
                     slot.addEventListener('drop', handleDrop);
                     puzzleGrid.appendChild(slot);
                 }
-                // Shuffle pieces and add to the pieces container
                 const shuffledPieces = [...pieces].sort(() => Math.random() - 0.5);
                 shuffledPieces.forEach(piece => piecesContainer.appendChild(piece));
             }
             
-            /**
-             * Checks if all puzzle pieces have been correctly placed.
-             * If complete, shows the prize modal.
-             */
             function checkCompletion() {
                 if (correctlyPlaced === PIECE_COUNT) {
                     prizeTitle.textContent = ''; 
-                    const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
-                    prizeCodeEl.textContent = randomCode;
 
-                    prizeModal.classList.remove('invisible', 'opacity-0'); // Show modal
-                    setupAnimatedCanvas('modal-dot-canvas'); // Start modal background animation
+                    const randomIndex = Math.floor(Math.random() * prizeCodes.length);
+                    const selectedCode = prizeCodes[randomIndex];
+                    
+                    prizeCodeEl.textContent = selectedCode; 
+
+                    prizeModal.classList.remove('invisible', 'opacity-0'); 
+                    setupAnimatedCanvas('modal-dot-canvas'); 
                 }
             }
 
-            // Event listener for the "Next Level" button
             playAgainBtn.addEventListener('click', () => {
-                // Stop and remove modal canvas animation if it's active
                 if (activeAnimations['modal-dot-canvas']) {
                     clearInterval(activeAnimations['modal-dot-canvas'].interval);
                     if (activeAnimations['modal-dot-canvas'].observer) {
@@ -905,13 +853,12 @@
                     }
                     delete activeAnimations['modal-dot-canvas']; 
                 }
-                setupGame(); // Start a new game
+                setupGame(); 
             });
             
-            // Initial setup when the page loads
             setupGame();
-            setupAnimatedCanvas('dot-canvas'); // Start main background animation
-            desyncAnimations(); // Desynchronize text animations for a dynamic effect
+            setupAnimatedCanvas('dot-canvas'); 
+            desyncAnimations(); 
         });
     </script>
 </body>
